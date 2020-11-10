@@ -23,6 +23,7 @@ from contextlib import closing
 from testing.common.database import (
     Database, DatabaseFactory, get_path_of, SkipIfNotInstalledDecorator
 )
+import platform
 
 
 __all__ = ['Postgresql', 'skipIfNotFound']
@@ -113,8 +114,11 @@ class Postgresql(Database):
             return True
 
     def terminate(self, *args):
-        # send SIGINT instead of SIGTERM
-        super(Postgresql, self).terminate(signal.SIGINT if os.name != 'nt' else None)
+        if platform.system() == 'Windows':
+            os.system("taskkill /f /pid " + str(self.server_pid))
+        else:
+            # send SIGINT instead of SIGTERM
+            super(Postgresql, self).terminate(signal.SIGINT if os.name != 'nt' else None)
 
 
 class PostgresqlFactory(DatabaseFactory):
